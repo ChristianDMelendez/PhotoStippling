@@ -153,11 +153,14 @@
           canvas.width = img.width;
           canvas.height = img.height;
 
-          // ✅ Force top canvas background to white
+          // Step 1: fill white
           ctx.fillStyle = "#fff";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+          // Step 2: draw uploaded image
           ctx.drawImage(img, 0, 0);
+
+          // Step 3: stipple on top of that
           stipple();
         };
         img.src = event.target.result;
@@ -166,10 +169,6 @@
     });
 
     function stipple() {
-      // ✅ Fill canvas again with white before stippling
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
@@ -199,7 +198,6 @@
 
     function download() {
       const isMobileSave = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.userAgent.includes("Firefox");
-
       const dataURL = canvas.toDataURL("image/png");
 
       if (isMobileSave) {
