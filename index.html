@@ -88,6 +88,8 @@
       color: white;
       font-weight: bold;
       font-size: 1rem;
+      padding: 10px 16px;
+      border-radius: 6px;
     }
   </style>
 </head>
@@ -160,35 +162,27 @@
     }
 
     function download() {
-      const dataURL = canvas.toDataURL("image/png");
-      const filename = "ultrafine_stipple.png";
-      const a = document.createElement("a");
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        const blob = dataURLToBlob(dataURL);
+      canvas.toBlob(function(blob) {
+        const filename = "ultrafine_stipple.png";
         const blobURL = URL.createObjectURL(blob);
-        a.href = blobURL;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(blobURL), 1000);
-      } else {
-        a.href = dataURL;
-        a.download = filename;
-        a.click();
-      }
-    }
+        const a = document.createElement("a");
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-    function dataURLToBlob(dataURL) {
-      const byteString = atob(dataURL.split(',')[1]);
-      const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      return new Blob([ab], { type: mimeString });
+        if (isIOS) {
+          window.open(blobURL, "_blank");
+          setTimeout(() => {
+            alert("📥 Tap and hold the image to save.");
+          }, 500);
+        } else {
+          a.href = blobURL;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+
+        setTimeout(() => URL.revokeObjectURL(blobURL), 2000);
+      }, 'image/png');
     }
   </script>
 </body>
