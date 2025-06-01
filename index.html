@@ -47,8 +47,8 @@
     const ctx = canvas.getContext("2d");
     let nsfwModel;
 
-    // Load NSFWJS model
-    nsfwjs.load().then((model) => {
+    // Load NSFW model
+    nsfwjs.load().then(model => {
       nsfwModel = model;
       console.log("NSFWJS model loaded");
     });
@@ -56,35 +56,46 @@
     document.getElementById("upload").addEventListener("change", async function (e) {
       const file = e.target.files[0];
       const img = new Image();
-      const imgURL = URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);
 
       img.onload = async () => {
         canvas.width = img.width;
         canvas.height = img.height;
+
+        // Draw image first for model to analyze it
         ctx.drawImage(img, 0, 0);
 
         if (!nsfwModel) {
-          alert("Model is still loading, please wait a moment.");
+          alert("NSFW detection model is still loading, please wait a sec.");
           return;
         }
 
-        const predictions = await nsfwModel.classify(canvas);
-        const badPrediction = predictions.find(p =>
-          p.className === "Porn" ||
-          p.className === "Hentai" ||
-          p.className === "Sexy"
-        );
+        // Check image with NSFWJS
+        try {
+          const predictions = await nsfwModel.classify(canvas);
+          const bad = predictions.find(p =>
+            (["Porn", "Hentai", "Sexy"].includes(p.className)) && p.probability > 0.6
+          );
 
-        if (badPrediction && badPrediction.probability > 0.6) {
-          alert("⚠️ NSFW content detected. This tool is not intended for inappropriate images.");
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (bad) {
+            alert("⚠️ NSFW content detected. This app does not support such images.");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+          }
+        } catch (err) {
+          console.error("Detection error:", err);
+          alert("Something went wrong with content scanning.");
           return;
         }
 
-        setTimeout(stipple, 200);
+        // Safe to proceed
+        setTimeout(() => {
+          ctx.drawImage(img, 0, 0); // redraw to ensure full data
+          stipple();
+        }, 100);
       };
 
-      img.src = imgURL;
+      img.src = url;
     });
 
     function stipple() {
