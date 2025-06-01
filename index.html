@@ -48,7 +48,19 @@
       color: #fff;
     }
 
-    /* Modal styling */
+    #saveMsg {
+      display: none;
+      font-size: 0.95rem;
+      margin-top: 12px;
+    }
+
+    #imagePreview {
+      display: none;
+      max-width: 100%;
+      border: 2px solid #444;
+      margin-top: 10px;
+    }
+
     #modal {
       position: fixed;
       top: 0; left: 0;
@@ -90,6 +102,14 @@
       padding: 10px 16px;
       border-radius: 6px;
     }
+
+    /* Prevent unwanted highlighting */
+    body, h1, button, input, p {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -107,10 +127,15 @@
   <button onclick="download()">Download</button>
   <canvas id="canvas"></canvas>
 
+  <p id="saveMsg">📲 Tap and hold the image below to save on mobile devices:</p>
+  <img id="imagePreview" />
+
   <script>
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const upload = document.getElementById("upload");
+    const preview = document.getElementById("imagePreview");
+    const saveMsg = document.getElementById("saveMsg");
 
     function closeModal() {
       document.getElementById("modal").style.display = "none";
@@ -129,6 +154,10 @@
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
           stipple();
+
+          // Clear old preview
+          preview.style.display = "none";
+          saveMsg.style.display = "none";
         };
         img.src = event.target.result;
       };
@@ -145,7 +174,7 @@
           const i = (y * canvas.width + x) * 4;
           const r = data[i], g = data[i + 1], b = data[i + 2];
           const brightness = (r + g + b) / 3;
-          const density = Math.floor((255 - brightness) / 30); // Keep it brighter
+          const density = Math.floor((255 - brightness) / 30);
 
           for (let j = 0; j < density; j++) {
             const jitterX = Math.random() * 1.2 - 0.6;
@@ -163,15 +192,17 @@
       canvas.toBlob(function(blob) {
         const filename = "ultrafine_stipple.png";
         const blobURL = URL.createObjectURL(blob);
-        const a = document.createElement("a");
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isFirefox = navigator.userAgent.includes("Firefox");
 
-        if (isIOS) {
-          window.open(blobURL, "_blank");
-          setTimeout(() => {
-            alert("📥 Tap and hold the image to save.");
-          }, 500);
+        if (isIOS || isFirefox) {
+          // Tap to save image for iOS/Firefox
+          preview.src = blobURL;
+          preview.style.display = "block";
+          saveMsg.style.display = "block";
+          window.scrollTo(0, document.body.scrollHeight);
         } else {
+          const a = document.createElement("a");
           a.href = blobURL;
           a.download = filename;
           document.body.appendChild(a);
@@ -179,7 +210,7 @@
           document.body.removeChild(a);
         }
 
-        setTimeout(() => URL.revokeObjectURL(blobURL), 2000);
+        setTimeout(() => URL.revokeObjectURL(blobURL), 3000);
       }, 'image/png');
     }
   </script>
