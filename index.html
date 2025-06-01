@@ -103,7 +103,6 @@
       border-radius: 6px;
     }
 
-    /* Disable accidental selection */
     body, h1, button, input, p {
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -183,32 +182,32 @@
         }
       }
 
-      // Update preview with exact stippled canvas image
-      preview.src = canvas.toDataURL("image/png");
+      // always update preview from canvas directly
+      const dataURL = canvas.toDataURL("image/png");
+      preview.src = dataURL;
       preview.style.display = "block";
       saveMsg.style.display = "block";
     }
 
     function download() {
-      canvas.toBlob(function(blob) {
-        const filename = "ultrafine_stipple.png";
-        const blobURL = URL.createObjectURL(blob);
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isFirefox = navigator.userAgent.includes("Firefox");
+      const isMobileSave = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.userAgent.includes("Firefox");
 
-        if (isIOS || isFirefox) {
-          window.scrollTo(0, document.body.scrollHeight);
-        } else {
-          const a = document.createElement("a");
-          a.href = blobURL;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }
+      const dataURL = canvas.toDataURL("image/png");
 
-        setTimeout(() => URL.revokeObjectURL(blobURL), 3000);
-      }, 'image/png');
+      if (isMobileSave) {
+        // show preview for tap and hold save
+        preview.src = dataURL;
+        preview.style.display = "block";
+        saveMsg.style.display = "block";
+        window.scrollTo(0, document.body.scrollHeight);
+      } else {
+        const a = document.createElement("a");
+        a.href = dataURL;
+        a.download = "ultrafine_stipple.png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     }
   </script>
 </body>
