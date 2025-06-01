@@ -47,55 +47,50 @@
     const ctx = canvas.getContext("2d");
     let nsfwModel;
 
-    // Load NSFW model
     nsfwjs.load().then(model => {
       nsfwModel = model;
-      console.log("NSFWJS model loaded");
+      console.log("NSFW model loaded");
     });
 
-    document.getElementById("upload").addEventListener("change", async function (e) {
+    document.getElementById("upload").addEventListener("change", function (e) {
       const file = e.target.files[0];
       const img = new Image();
-      const url = URL.createObjectURL(file);
+      const imgURL = URL.createObjectURL(file);
 
       img.onload = async () => {
         canvas.width = img.width;
         canvas.height = img.height;
 
-        // Draw image first for model to analyze it
         ctx.drawImage(img, 0, 0);
 
         if (!nsfwModel) {
-          alert("NSFW detection model is still loading, please wait a sec.");
+          alert("Hold up — the NSFW model is still loading...");
           return;
         }
 
-        // Check image with NSFWJS
         try {
           const predictions = await nsfwModel.classify(canvas);
           const bad = predictions.find(p =>
-            (["Porn", "Hentai", "Sexy"].includes(p.className)) && p.probability > 0.6
+            ["Porn", "Hentai", "Sexy"].includes(p.className) && p.probability > 0.6
           );
 
           if (bad) {
-            alert("⚠️ NSFW content detected. This app does not support such images.");
+            alert("⚠️ NSFW content detected. Please use safe images.");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
           }
         } catch (err) {
-          console.error("Detection error:", err);
-          alert("Something went wrong with content scanning.");
+          console.error("NSFWJS Error:", err);
+          alert("Something went wrong with the image check.");
           return;
         }
 
-        // Safe to proceed
-        setTimeout(() => {
-          ctx.drawImage(img, 0, 0); // redraw to ensure full data
-          stipple();
-        }, 100);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        stipple();
       };
 
-      img.src = url;
+      img.src = imgURL;
     });
 
     function stipple() {
@@ -124,19 +119,36 @@
 
     function download() {
       const dataURL = canvas.toDataURL("image/png");
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const filename = "ultrafine_stippled_art.png";
+      const a = document.createElement("a");
 
-      if (isMobile) {
-        window.open(dataURL, "_blank");
-        alert("Long press the image and tap 'Save Image' to download.");
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        const blob = dataURLToBlob(dataURL);
+        const blobURL = URL.createObjectURL(blob);
+        a.href = blobURL;
+        a.download = filename;
+
+        // For Safari mobile
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobURL), 1000);
       } else {
-        const link = document.createElement("a");
-        link.href = dataURL;
-        link.download = "ultrafine_stippled_art.png";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        a.href = dataURL;
+        a.download = filename;
+        a.click();
       }
+    }
+
+    function dataURLToBlob(dataURL) {
+      const byteString = atob(dataURL.split(',')[1]);
+      const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ab], { type: mimeString });
     }
   </script>
 </body>
