@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ultra Fine Stippling Generator</title>
+  <title>Stipple Vision</title>
   <style>
     body {
       background: #111;
       color: #fff;
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       text-align: center;
       padding: 20px;
     }
@@ -31,18 +31,17 @@
     }
     #status {
       font-size: 14px;
-      margin-bottom: 8px;
       color: #0f0;
+      margin-bottom: 10px;
     }
   </style>
-
-  <!-- TensorFlow + NSFWJS -->
+  <!-- TensorFlow & NSFWJS -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
   <script src="https://unpkg.com/nsfwjs"></script>
 </head>
 <body>
-  <h1>🖊️ Ultra Fine Stippling Generator</h1>
-  <div id="status">Loading scanner...</div>
+  <h1>🖊️ Ultra Fine Stipple Vision</h1>
+  <div id="status">🔄 Initializing scanner...</div>
   <input type="file" id="upload" accept="image/*" disabled />
   <button onclick="download()">Download</button>
   <br />
@@ -53,16 +52,19 @@
     const ctx = canvas.getContext("2d");
     const upload = document.getElementById("upload");
     const status = document.getElementById("status");
-    let nsfwModel;
+    let nsfwModel = null;
 
-    // Load model ASAP and enable UI when ready
+    // Load model fast and silently
     nsfwjs.load().then(model => {
       nsfwModel = model;
-      status.textContent = "Scanner ready.";
+      status.textContent = "✅ Scanner ready.";
       upload.disabled = false;
+    }).catch(err => {
+      status.textContent = "❌ Failed to load scanner.";
+      console.error("NSFW model error:", err);
     });
 
-    upload.addEventListener("change", function (e) {
+    upload.addEventListener("change", async function (e) {
       const file = e.target.files[0];
       if (!file || !nsfwModel) return;
 
@@ -74,19 +76,23 @@
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
 
-          const predictions = await nsfwModel.classify(canvas);
-          const unsafe = predictions.find(p =>
-            ["Porn", "Hentai", "Sexy"].includes(p.className) && p.probability > 0.6
-          );
-          if (unsafe) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            return; // Silently block NSFW
-          }
+          try {
+            const predictions = await nsfwModel.classify(canvas);
+            const unsafe = predictions.find(p =>
+              ["Porn", "Hentai", "Sexy"].includes(p.className) && p.probability > 0.6
+            );
+            if (unsafe) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              return; // silently skip NSFW
+            }
 
-          // Safe, redraw fresh before stippling
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0);
-          stipple();
+            // Safe to stipple
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            stipple();
+          } catch (err) {
+            console.error("Detection failed:", err);
+          }
         };
         img.src = event.target.result;
       };
