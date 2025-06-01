@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ultra Fine Stippling (Mobile Safe)</title>
+  <title>Ultra Fine Stippling + NSFW Detection</title>
   <style>
     body {
       background: #111;
@@ -30,9 +30,13 @@
       color: #fff;
     }
   </style>
+
+  <!-- TensorFlow + NSFWJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+  <script src="https://unpkg.com/nsfwjs"></script>
 </head>
 <body>
-  <h1>🖊️ Ultra Fine Stippling Generator</h1>
+  <h1>🖊️ Ultra Fine Stippling Generator + NSFW Filter</h1>
   <input type="file" id="upload" accept="image/*" />
   <button onclick="download()">Download Stippled Art</button>
   <br />
@@ -41,17 +45,46 @@
   <script>
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
+    let nsfwModel;
 
-    document.getElementById("upload").addEventListener("change", function (e) {
+    // Load NSFWJS model
+    nsfwjs.load().then((model) => {
+      nsfwModel = model;
+      console.log("NSFWJS model loaded");
+    });
+
+    document.getElementById("upload").addEventListener("change", async function (e) {
       const file = e.target.files[0];
       const img = new Image();
-      img.onload = () => {
+      const imgURL = URL.createObjectURL(file);
+
+      img.onload = async () => {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
+
+        if (!nsfwModel) {
+          alert("Model is still loading, please wait a moment.");
+          return;
+        }
+
+        const predictions = await nsfwModel.classify(canvas);
+        const badPrediction = predictions.find(p =>
+          p.className === "Porn" ||
+          p.className === "Hentai" ||
+          p.className === "Sexy"
+        );
+
+        if (badPrediction && badPrediction.probability > 0.6) {
+          alert("⚠️ NSFW content detected. This tool is not intended for inappropriate images.");
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+
         setTimeout(stipple, 200);
       };
-      img.src = URL.createObjectURL(file);
+
+      img.src = imgURL;
     });
 
     function stipple() {
