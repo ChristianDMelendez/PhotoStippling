@@ -2,7 +2,7 @@
 
 This project is a browser-based stippling art tool that transforms standard images into detailed, fine-dot illustrations — inspired by hand-drawn pen-and-ink styles.
 
-Built for artists, creators, and anyone curious about digital stipple effects, this tool allows you to generate stunning black-and-white stippling renderings entirely inside your browser.
+Built for artists, creators, and anyone curious about digital stipple effects, this tool allows you to generate stunning colored stippling renderings entirely inside your browser.
 
 ---
 
