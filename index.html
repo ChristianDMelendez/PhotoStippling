@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ultra Fine Stippling</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    canvas {
+      border: 2px solid #333;
+      margin-top: 20px;
+      background: white;
+      max-width: 100%;
+    }
+    input, button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🖊️ Ultra Fine Stippling Generator</h1>
+  <input type="file" id="upload" accept="image/*" />
+  <button onclick="download()">Download Stippled Art</button>
+  <br />
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    document.getElementById("upload").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        setTimeout(stipple, 200);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+
+    function stipple() {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let y = 0; y < canvas.height; y += 2) {
+        for (let x = 0; x < canvas.width; x += 2) {
+          const i = (y * canvas.width + x) * 4;
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          const brightness = (r + g + b) / 3;
+          const density = Math.floor((255 - brightness) / 20);
+
+          for (let j = 0; j < density; j++) {
+            const jitterX = Math.random() * 1.5 - 0.75;
+            const jitterY = Math.random() * 1.5 - 0.75;
+            ctx.beginPath();
+            ctx.arc(x + jitterX, y + jitterY, 0.4, 0, Math.PI * 2);
+            ctx.fillStyle = "#000";
+            ctx.fill();
+          }
+        }
+      }
+    }
+
+    function download() {
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = "ultrafine_stippled_art.png";
+
+      // Wait a bit to make sure the canvas is fully ready
+      setTimeout(() => {
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, 100);
+    }
+  </script>
+</body>
+</html>
