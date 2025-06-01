@@ -103,7 +103,7 @@
       border-radius: 6px;
     }
 
-    /* Prevent unwanted highlighting */
+    /* Disable accidental selection */
     body, h1, button, input, p {
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -154,10 +154,6 @@
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
           stipple();
-
-          // Clear old preview
-          preview.style.display = "none";
-          saveMsg.style.display = "none";
         };
         img.src = event.target.result;
       };
@@ -186,6 +182,11 @@
           }
         }
       }
+
+      // Update preview with exact stippled canvas image
+      preview.src = canvas.toDataURL("image/png");
+      preview.style.display = "block";
+      saveMsg.style.display = "block";
     }
 
     function download() {
@@ -196,10 +197,6 @@
         const isFirefox = navigator.userAgent.includes("Firefox");
 
         if (isIOS || isFirefox) {
-          // Tap to save image for iOS/Firefox
-          preview.src = blobURL;
-          preview.style.display = "block";
-          saveMsg.style.display = "block";
           window.scrollTo(0, document.body.scrollHeight);
         } else {
           const a = document.createElement("a");
