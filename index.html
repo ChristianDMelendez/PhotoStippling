@@ -21,12 +21,11 @@
     h1 {
       font-size: 6vw;
       max-width: 100%;
-      word-wrap: break-word;
     }
 
     canvas {
       display: block;
-      width: 100%;
+      max-width: 100%;
       height: auto;
       border: 2px solid #333;
       background: white;
@@ -98,8 +97,7 @@
   <div id="modal">
     <div id="modalContent">
       <h2>Respectful Use Reminder</h2>
-      <p>This tool is intended for artistic and creative use only.<br>
-         Please do not upload any NSFW or explicit images.</p>
+      <p>This tool is for artistic use only.<br>Please do not upload NSFW or explicit images.</p>
       <button onclick="closeModal()">I Understand</button>
     </div>
   </div>
@@ -147,13 +145,13 @@
           const i = (y * canvas.width + x) * 4;
           const r = data[i], g = data[i + 1], b = data[i + 2];
           const brightness = (r + g + b) / 3;
-          const density = Math.floor((255 - brightness) / 20);
+          const density = Math.floor((255 - brightness) / 30); // Keep it brighter
 
           for (let j = 0; j < density; j++) {
-            const jitterX = Math.random() * 1.5 - 0.75;
-            const jitterY = Math.random() * 1.5 - 0.75;
+            const jitterX = Math.random() * 1.2 - 0.6;
+            const jitterY = Math.random() * 1.2 - 0.6;
             ctx.beginPath();
-            ctx.arc(x + jitterX, y + jitterY, 0.4, 0, Math.PI * 2);
+            ctx.arc(x + jitterX, y + jitterY, 0.35, 0, Math.PI * 2);
             ctx.fillStyle = "#000";
             ctx.fill();
           }
