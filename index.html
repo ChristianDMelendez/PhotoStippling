@@ -59,6 +59,7 @@
       max-width: 100%;
       border: 2px solid #444;
       margin-top: 10px;
+      background: white; /* THIS is the only line added */
     }
 
     #modal {
@@ -182,7 +183,6 @@
         }
       }
 
-      // always update preview from canvas directly
       const dataURL = canvas.toDataURL("image/png");
       preview.src = dataURL;
       preview.style.display = "block";
@@ -195,7 +195,6 @@
       const dataURL = canvas.toDataURL("image/png");
 
       if (isMobileSave) {
-        // show preview for tap and hold save
         preview.src = dataURL;
         preview.style.display = "block";
         saveMsg.style.display = "block";
