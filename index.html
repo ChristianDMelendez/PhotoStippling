@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ultra Fine Stippling</title>
+  <title>Ultra Fine Stippling (Mobile Safe)</title>
   <style>
     body {
       background: #111;
@@ -19,8 +19,15 @@
     }
     input, button {
       margin: 10px;
-      padding: 10px;
+      padding: 10px 20px;
       font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #333;
+      color: #fff;
     }
   </style>
 </head>
@@ -72,16 +79,20 @@
     }
 
     function download() {
-      const link = document.createElement("a");
-      link.href = canvas.toDataURL("image/png");
-      link.download = "ultrafine_stippled_art.png";
+      const dataURL = canvas.toDataURL("image/png");
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-      // Wait a bit to make sure the canvas is fully ready
-      setTimeout(() => {
+      if (isMobile) {
+        window.open(dataURL, "_blank");
+        alert("Long press the image and tap 'Save Image' to download.");
+      } else {
+        const link = document.createElement("a");
+        link.href = dataURL;
+        link.download = "ultrafine_stippled_art.png";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      }, 100);
+      }
     }
   </script>
 </body>
