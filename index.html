@@ -59,7 +59,7 @@
       max-width: 100%;
       border: 2px solid #444;
       margin-top: 10px;
-      background: white; /* THIS is the only line added */
+      background: white;
     }
 
     #modal {
@@ -152,6 +152,11 @@
         img.onload = function () {
           canvas.width = img.width;
           canvas.height = img.height;
+
+          // ✅ Force top canvas background to white
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
           ctx.drawImage(img, 0, 0);
           stipple();
         };
@@ -161,9 +166,12 @@
     });
 
     function stipple() {
+      // ✅ Fill canvas again with white before stippling
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (let y = 0; y < canvas.height; y += 2) {
         for (let x = 0; x < canvas.width; x += 2) {
